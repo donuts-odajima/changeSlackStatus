@@ -6,6 +6,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"time"
+	"math"
 	"fmt"
 	"strconv"
 )
@@ -30,6 +32,7 @@ func main() {
 	cityData := url.Values{}
 	cityData.Add("lon", CityLon)
 	cityData.Add("lat", CityLat)
+	cityData.Add("cnt", "8")
 	cityData.Add("APPID", OWMApiKey)
 
 	statusData, err := getCityWeather(cityData)
@@ -56,18 +59,29 @@ func getCityWeather(cityData url.Values) (*weatherSlackStatus, error) {
 		return nil, err
 	}
 	jsonBytes := ([]byte)(byteArray)
-	data := new(OWMResponse)
+	data := new(OWM5DaysWeatherResponse)
 	if err := json.Unmarshal(jsonBytes, data); err != nil {
         return nil, err
     }
 
 	statusData := new(weatherSlackStatus)
 	statusData.Token = SlackUserToken
-	weatherID := data.Weather[0].ID
+	weatherID := data.List[0].Weather[0].ID
 	weatherDetail := WeatherMap[weatherID]
 	statusText := weatherDetail.Description
-	tempMin := data.Main.TempMin - 273.15
-	tempMax := data.Main.TempMax - 273.15
+	tempMin := 1000.0
+	tempMax := -1000.0
+	today := time.Now().Day()
+	for _, d := range data.List {
+		if time.Unix(d.Dt, 0).Day() == today {
+			tempMin = math.Min(tempMin, d.Main.TempMin)
+			tempMax = math.Max(tempMax, d.Main.TempMax)
+		} else {
+			break
+		}
+	}
+	tempMin = tempMin - 273.15
+	tempMax = tempMax - 273.15
 	statusText += " " + strconv.FormatFloat(tempMin, 'f', 1, 64) + "~" + strconv.FormatFloat(tempMax, 'f', 1, 64) + "℃"
 
 	fmt.Println(statusText)

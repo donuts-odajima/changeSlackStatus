@@ -6,8 +6,11 @@ package main
 const CityLon = "139.700338" // Tokyo Shinjuku
 // CityLat 都市緯度
 const CityLat = "35.686427"
-// OWMApiURL API URL
-const OWMApiURL = "http://api.openweathermap.org/data/2.5/weather"
+// OWMApiURL 3時間ごと、5日分の天気
+const OWMApiURL = "http://api.openweathermap.org/data/2.5/forecast"
+// その時間の天気
+// const OWMApiURL = "http://api.openweathermap.org/data/2.5/weather"
+
 // OWMApiKey API Token. 取得する必要あり
 const OWMApiKey = ""
 
